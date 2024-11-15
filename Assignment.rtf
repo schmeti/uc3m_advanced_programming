@@ -1,0 +1,102 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2818
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10780\viewh20460\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Files: \
+- RMarkdown - call functions & report\
+- utils.R - store functions\
+- C++ file for C++ version of functions\
+\
+-> Expoer to R package\
+\
+\
+Introduction\
+The aim of this assignment is to program in C++ a simplified version of the tree training\
+algorithm: learning decision stumps (one-level trees). The main steps in the assignment:\
+\
+1. All code and data for this assignment must be included in a RStudio project, because\
+he final objective is to create a package/library with code (in R and C++) and data.\
+Once created the project, make sure to store the supplied play_tennis dataset in the\
+project \'93data\'94 directory, like this:\
+\
+play_tennis <- read.csv('play_tennis.csv', stringsAsFactors = TRUE)\
+# Save as .rda file in the 'data' directory of your project\
+save(play_tennis, file = "data/play_tennis.rda")\
+\
+DONE\
+\
+2. (0.25 points) You can begin by visualizing trees produced by the rpart library. You\
+can use the following code for that, by creating a R function in a utils.R file that you\
+will also save in your project. Change maxdepth values and see what happens.\
+Report your experiments.\
+\
+model <- rpart(PlayTennis ~ ., play_tennis,\
+control = rpart.control(cp = 0, maxdepth = 2, minsplit = 1,\
+minbucket = 1))\
+rpart.plot(model)\
+\
+Comments: - just create function w max depht as param in utils.\
+\
+3. The play_tennis dataset stored in the \'93data\'94 directory has factor (categorical)\
+columns, but your C++ code will only be able to handle integers. You can use the\
+following function for encoding a factor/categorical dataframe into a numeric\
+matrix. Store this function also in the utils.R file of your project:\
+\
+num_matrix_from_df <- function(tennis_data)\{\
+as.matrix(as.data.frame(lapply(tennis_data,\
+function(x) as.integer(x)-1)))\}\
+\
+4. (0.25 points) Read and understand the code I have supplied in file\
+decision_stump.R. The most important function is best_split_R. This\
+function takes a numeric matrix X (input predictors or features) and a numeric\
+vector y (of 0\'92s and 1\'92s, corresponding to class \'93no\'94 and class \'93yes\'94). It returns a\
+vector of three values: the best feature (an integer>=1), the best value (an\
+integer>=1), and the corresponding gini value. Bear in mind that function\
+gini_impurity_R is used but not supplied. Show your understanding of the code by\
+writing comments about what each part of the program does.\
+\
+5. (0.5 points) Program now in R the missing function gini_impurity_R.\
+\
+Comment: \
+- Compare to R gini function to verify (DescTools)\
+\
+6. (1.25 points) Translate the R code in decision_stump.R (including\
+gini_impurity.R) into C++. If you can find some optimization to the code, this\
+is also the place to do it (and explain your optimization in the report).\
+\
+\
+7. (0.5 points) Show that your C++ code works as expected. This can be done by\
+defining some inputs (maybe even some changes to the original dataset) and\
+showing that the code produces the expected output.\
+\
+Comments: \
+- Invent new data colum (Do i want to play tennis) to verify results\
+\
+8. (0.25 points) Use the library microbenchmark in order to determine whether the\
+C++ version is faster than the R version, and also than the library rpart.\
+\
+9. (+0.3 points) Optional. The current R-code outputs a list containing [best_feature,\
+best_value, best_gini]. Modify the R and C++ code so that it also outputs the\
+predicted class of the left and right branches of the decision stump (the majority\
+class on the left branch and the majority class on the right branch).\
+\
+Comments:\
+- Percentage of Class\
+\
+What to hand in:\
+\'95 Hand in your code and report in Aula Global. It should be a zip file containing:\
+a. The report. It should give a brief description of what your functions do and\
+show that your functions do what they are meant to do. The use of ChatGPT\
+is allowed for solving concrete issues (not the whole problem). If you use it,\
+please write some summary about in what particular aspects it helped you.\
+b. A source R package (as taught in class) with all the functions, in R and in\
+C++. The package filename should look something like this:\
+myds_1.0.tar.gz, but you can name your project differently than\
+myds.\
+\
+\
+General Todos: \
+- Create R Markdown file}
