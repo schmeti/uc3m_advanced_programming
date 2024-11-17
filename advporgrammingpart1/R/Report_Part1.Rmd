@@ -6,24 +6,80 @@ date: "2024-11-15"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(rpart)
+library(rpart.plot)
+play_tennis = read.csv("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/play_tennis.csv",header=TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+The first is to create a function that only changes the max depth of the decision tree. This will allow to assess the effects of changing this parameter. 
+The first tree is the original with depth 2 and we will be checking for 4, 5, 6 and 10.
+```{r warning=FALSE}
+change_depth = function(maxde){
+  model <- rpart(PlayTennis ~ ., play_tennis, control = rpart.control(cp = 0, maxdepth = maxde, minsplit = 1, minbucket = 1)) 
+  return (rpart.plot(model)) 
+}
+change_depth(2)
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+change_depth(4)
+change_depth(5)
+change_depth(6)
+change_depth(10)
 ```
+As you can see when you have a smaller value for max_depth, the tree is simpler. As you increase the value of max_depth, the tree becomes more complex, eventually reaching a point where the nodes perfectly separate the categories (i.e. the categories become 100% pure).For this tree the complexity is maximized at max_depth = 5. Meaning that you get the same tree when you use any value greater than or equal to 5.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+In general, having a perfect division in the data can lead to problems like overfitting, and this is why it is typical to prune the trees.
+
+```{r}
+gini_impurity_R <- function(left,right){
+  len_right= length(right) #length of the right 
+  len_left = length(left) #length of the right
+  n_rows = len_left+len_right #length of the total rows
+  gin_left = 1 - ((sum(left=='Yes')/len_left)^2+(sum(left=='No')/len_left)^2) #gini calculation for the left
+  gin_right = 1 - ((sum(right=='Yes')/len_right)^2+(sum(right=='No')/len_right)^2) #gini calculation for the right
+  weight_gini = len_left/n_rows * gin_left + len_right/n_rows*gin_right #weighted
+  return(weight_gini)
+}
+
+best_split_R <- function(X, y) { #X is your predictors and y is the response variable
+  best_gini <- 1.0 # the worst possible gini will be 1 so you leave it as a max possible value
+  best_feature <- -1 #feature auxiliar only to be change for another one.
+  n_features <- ncol(X) #number of columns to check
+  
+  for (feature in 1:n_features) { # runs through all the columns 
+    values <- unique(X[, feature]) #gives all the unique values in the column i(feature) if you have categorical you will get the different levels
+    
+    # The for value in values divide the X in 2. The ones that are equal to the i value in values 
+    # and the ones that are different from the value. 
+    for (value in values) { 
+      left_indices <- X[, feature] == value #vector value of the values that are equal to the value i
+      right_indices <- X[, feature] != value
+      
+      left <- y[left_indices] #subset of element of y where left_indice is true
+      right <- y[right_indices] #same but right_indice is true
+      
+      gini <- gini_impurity_R(left, right) #how much does the value (i) divide the dataset
+      if (gini < best_gini) { #check if gini get improves (get smaller) and if this happen change the gini value and save the feature
+        best_gini <- gini
+        best_feature <- feature # Store the best feature index
+        best_value <- value #which division of the values you use
+      }
+    }
+  }
+  
+  output <- list( #give the save values for the split 
+    best_feature = best_feature,
+    best_value = best_value,
+    best_gini = best_gini
+  )
+  
+  output
+}
+```
+The inputs to the function are the predictors (X) and the response variable (y), which is the one you want to predict. The function begins by setting default values: the Gini impurity is initialized to 1, as this represents the worst possible value, and the feature is set to -1, which is a placeholder since -1 is a possible value in the columns.
+
+Next, the function iterates through the columns of the predictors. For each column, it first retrieves the unique values in that column. Then, for each unique value, it creates two boolean vectors: one that is TRUE when the current value in the column matches the value being considered, and another that is TRUE when the value does not match. These two boolean vectors are used to create two subsets of the response variable (y): one for the left subset (where the value is present) and one for the right subset (where the value is absent).
+
+Finally, the Gini impurity is calculated between the two subsets, and if the Gini value is smaller than the current one, the function updates the best Gini value, the best feature, and the corresponding value that resulted in the current best split.
+
+The gini function use the following function 
