@@ -11,9 +11,44 @@ using namespace Rcpp;
 //   http://gallery.rcpp.org/
 //
 
+
+// Utils
+
+
+
+
+// Normal
+
 // [[Rcpp::export]]
 NumericVector timesTwo(NumericVector x) {
   return x * 2;
+}
+
+
+//double gini_impurity_c(List left, List right){}
+
+
+// [[Rcpp::export]]
+List best_split_c(DataFrame X,DataFrame y) {
+  double best_gini = 1.0;
+  double best_feature = -1;
+  int n_features = X.size();
+  
+  List values;
+  
+  for (int n = 0; n < n_features; ++n){
+    Rcout << n;
+    values = X[n];
+    
+    
+  }
+    
+  return values;
+}
+
+// [[Rcpp::export]]
+void fit_decision_stump_c(DataFrame X,DataFrame y){
+  best_split_c(X, y);
 }
 
 
@@ -23,5 +58,12 @@ NumericVector timesTwo(NumericVector x) {
 //
 
 /*** R
-timesTwo(42)
+#Rcpp::sourceCpp("decision_stump_c.cpp")
+
+load("../data/play_tennis.rda")
+data <- play_tennis
+
+n = best_split_c(X =data[, c("Outlook", "Temperature", "Humidity", "Wind")],
+                     y =data[, c("PlayTennis")])
+print(n)
 */
