@@ -12,11 +12,6 @@ using namespace Rcpp;
 //
 
 
-// Utils
-
-
-
-
 // Normal
 
 // [[Rcpp::export]]
@@ -29,25 +24,48 @@ NumericVector timesTwo(NumericVector x) {
 
 
 // [[Rcpp::export]]
-List best_split_c(DataFrame X,DataFrame y) {
+void best_split_c(DataFrame X,CharacterVector y) {
+// init variables
   double best_gini = 1.0;
   double best_feature = -1;
   int n_features = X.size();
   
-  List values;
-  
-  for (int n = 0; n < n_features; ++n){
-    Rcout << n;
-    values = X[n];
+  for (int n = 0; n < n_features; ++n){ // iterate over columns
+    Rcout << "Processing feature: " << n << std::endl;
+
+    CharacterVector column = X[n]; // column as numeric vector
+    int n_rows = column.size();
     
+    CharacterVector unique_values; // vector for unique values
+    unique_values = Rcpp::unique(column);
+    int i_unique_values = unique_values.size();
+
     
+    for(int i = 0; i<i_unique_values; ++i){ // iterate over unique values in column
+      CharacterVector left_array;
+      CharacterVector right_array; 
+      for(int r = 0; r < n_rows; ++r){ // iterate over row elements in column and check wether is equal to unique value or not
+        
+        Rcout << "x: " << column[r] << std::endl;
+        Rcout << "compar to unique: " << unique_values[i] << std::endl;
+        Rcout << "y: " << y[r] << std::endl;
+        
+        if(column[r]==unique_values[i]){
+          left_array.push_back(y[r]);
+        } else {
+          right_array.push_back(y[r]);
+        }
+      }
+      Rcout << "left: " << left_array << std::endl;
+      Rcout << "right: " << right_array << std::endl;
+    }
   }
-    
-  return values;
 }
 
+
+
 // [[Rcpp::export]]
-void fit_decision_stump_c(DataFrame X,DataFrame y){
+void fit_decision_stump_c(DataFrame X,CharacterVector y){
   best_split_c(X, y);
 }
 
