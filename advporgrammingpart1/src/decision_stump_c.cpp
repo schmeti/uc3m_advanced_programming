@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <cmath>
 using namespace Rcpp;
 
 // This is a simple example of exporting a C++ function to R. You can
@@ -12,23 +13,51 @@ using namespace Rcpp;
 //
 
 
-// Normal
-
 // [[Rcpp::export]]
-NumericVector timesTwo(NumericVector x) {
-  return x * 2;
+double value_count(CharacterVector vec, const std::string& target){
+  int len_vec = vec.size();
+  int count = 0;
+  for(int n=0;n<len_vec;++n){
+    if (std::string(vec[n]) == target){
+      ++count;
+    }
+  }
+  return count;
 }
 
 
-//double gini_impurity_c(List left, List right){}
+// [[Rcpp::export]]
+double gini_impurity_c(CharacterVector left, CharacterVector right){
+  double len_left = left.size();
+  double len_right = right.size();
+  double len_total = len_left + len_right;
+  
+  double gin_right = 1 - (std::pow(value_count(right, "Yes") / len_right, 2) +
+                          std::pow(value_count(right, "No") / len_right, 2));
+  double gin_left = 1 - (std::pow(value_count(left, "Yes") / len_left, 2) +
+                         std::pow(value_count(left, "No") / len_left, 2));
+  
+  //Rcout << "gin_right: " << gin_right << std::endl;
+  //Rcout << "gin_left: " << gin_left << std::endl;
+  
+  
+  
+  
+  double weight_gini = (len_left/len_total)*gin_left+(len_right/len_total)*gin_right;
+  
+  return weight_gini;
+}
 
 
 // [[Rcpp::export]]
-void best_split_c(DataFrame X,CharacterVector y) {
+List best_split_c(DataFrame X, List features, CharacterVector y) {
 // init variables
-  double best_gini = 1.0;
-  double best_feature = -1;
   int n_features = X.size();
+  
+  double best_gini = 100000;
+  std::string best_feature;
+  std::string best_value;
+  
   
   for (int n = 0; n < n_features; ++n){ // iterate over columns
     Rcout << "Processing feature: " << n << std::endl;
@@ -40,33 +69,41 @@ void best_split_c(DataFrame X,CharacterVector y) {
     unique_values = Rcpp::unique(column);
     int i_unique_values = unique_values.size();
 
-    
+
     for(int i = 0; i<i_unique_values; ++i){ // iterate over unique values in column
       CharacterVector left_array;
       CharacterVector right_array; 
       for(int r = 0; r < n_rows; ++r){ // iterate over row elements in column and check wether is equal to unique value or not
-        
-        Rcout << "x: " << column[r] << std::endl;
-        Rcout << "compar to unique: " << unique_values[i] << std::endl;
-        Rcout << "y: " << y[r] << std::endl;
-        
         if(column[r]==unique_values[i]){
           left_array.push_back(y[r]);
         } else {
           right_array.push_back(y[r]);
         }
       }
-      Rcout << "left: " << left_array << std::endl;
-      Rcout << "right: " << right_array << std::endl;
+      
+      double weight_gini = gini_impurity_c(left_array, right_array);
+      // Print gini
+      //Rcout << "right_array: " << right_array << std::endl;
+      //Rcout << "left_array: " << left_array << std::endl;
+      //Rcout << "weight_gini: " << weight_gini << std::endl;
+      
+      if (weight_gini < best_gini){
+        best_gini = weight_gini;
+        best_feature = Rcpp::as<std::string>(features[n]); // Explicit conversion to std::string
+        best_value = Rcpp::as<std::string>(unique_values[i]); 
+      }
     }
   }
+  return List::create(Named("best_gini") = best_gini,
+                      Named("best_feature") = best_feature,
+                      Named("best_value") = best_value);
 }
 
 
 
 // [[Rcpp::export]]
-void fit_decision_stump_c(DataFrame X,CharacterVector y){
-  best_split_c(X, y);
+void fit_decision_stump_c(DataFrame X, List features, CharacterVector y){
+  best_split_c(X, features, y);
 }
 
 
@@ -81,7 +118,11 @@ void fit_decision_stump_c(DataFrame X,CharacterVector y){
 load("../data/play_tennis.rda")
 data <- play_tennis
 
-n = best_split_c(X =data[, c("Outlook", "Temperature", "Humidity", "Wind")],
-                     y =data[, c("PlayTennis")])
-print(n)
+best_stump = best_split_c(X =data[, c("Outlook", "Temperature", "Humidity", "Wind")],
+                 features = list("Outlook", "Temperature", "Humidity", "Wind"),
+                 y = data[["PlayTennis"]])
+
+print(best_stump)
 */
+
+

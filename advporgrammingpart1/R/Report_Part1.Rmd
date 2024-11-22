@@ -83,3 +83,7 @@ Next, the function iterates through the columns of the predictors. For each colu
 Finally, the Gini impurity is calculated between the two subsets, and if the Gini value is smaller than the current one, the function updates the best Gini value, the best feature, and the corresponding value that resulted in the current best split.
 
 The gini function use the following function 
+
+
+
+
