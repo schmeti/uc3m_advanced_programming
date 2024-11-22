@@ -82,8 +82,23 @@ Next, the function iterates through the columns of the predictors. For each colu
 
 Finally, the Gini impurity is calculated between the two subsets, and if the Gini value is smaller than the current one, the function updates the best Gini value, the best feature, and the corresponding value that resulted in the current best split.
 
-The gini function use the following function 
 
+
+```{r}
+best_split_R(play_tennis[0:3],play_tennis$PlayTennis)
+```
+
+
+```{r}
+library(Rcpp)
+sourceCpp("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/advporgrammingpart1/src/decision_stump_c.cpp")
+```
+
+
+```{r}
+best_split_c(play_tennis[0:3],features = list("Outlook", "Temperature", "Humidity", "Wind"),play_tennis$PlayTennis)
+```
+As you can the both code give the same result. Next we will be adding a variable call "test" 
 
 
 
