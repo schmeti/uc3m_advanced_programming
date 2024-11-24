@@ -1,18 +1,7 @@
 #include <Rcpp.h>
 #include <cmath>
 using namespace Rcpp;
-
-// This is a simple example of exporting a C++ function to R. You can
-// source this function into an R session using the Rcpp::sourceCpp 
-// function (or via the Source button on the editor toolbar). Learn
-// more about Rcpp at:
-//
-//   http://www.rcpp.org/
-//   http://adv-r.had.co.nz/Rcpp.html
-//   http://gallery.rcpp.org/
-//
-
-
+#include <string>
 // [[Rcpp::export]]
 double value_count(CharacterVector vec, const std::string& target){
   int len_vec = vec.size();
@@ -39,8 +28,7 @@ double gini_impurity_c(CharacterVector left, CharacterVector right){
   
   //Rcout << "gin_right: " << gin_right << std::endl;
   //Rcout << "gin_left: " << gin_left << std::endl;
-  
-  
+
   
   
   double weight_gini = (len_left/len_total)*gin_left+(len_right/len_total)*gin_right;
@@ -48,31 +36,48 @@ double gini_impurity_c(CharacterVector left, CharacterVector right){
   return weight_gini;
 }
 
+std::string mayority_split(CharacterVector aux) {
+  // Remove std::pow, directly use value_count result
+  int sum_yes = value_count(aux, "Yes");  // Count occurrences of "Yes"
+  int sum_no = value_count(aux, "No");    // Count occurrences of "No"
+  
+  std::string mayority;
+  if (sum_yes > sum_no) {
+    mayority = "Yes";
+  } else if (sum_yes == sum_no) {
+    mayority = "Yes-No";
+  } else {
+    mayority = "No";
+  }
+  
+  return mayority;
+}
 
 // [[Rcpp::export]]
-List best_split_c(DataFrame X, List features, CharacterVector y) {
-// init variables
+List best_split_c_v2(DataFrame X, List features, CharacterVector y) {
+  // init variables
   int n_features = X.size();
   
   double best_gini = 100000;
   std::string best_feature;
   std::string best_value;
-  
+  CharacterVector best_left_array;
+  CharacterVector best_right_array;
   
   for (int n = 0; n < n_features; ++n){ // iterate over columns
     Rcout << "Processing feature: " << n << std::endl;
-
+    
     CharacterVector column = X[n]; // column as numeric vector
     int n_rows = column.size();
     
     CharacterVector unique_values; // vector for unique values
     unique_values = Rcpp::unique(column);
     int i_unique_values = unique_values.size();
-
-
+    
     for(int i = 0; i<i_unique_values; ++i){ // iterate over unique values in column
       CharacterVector left_array;
       CharacterVector right_array; 
+
       for(int r = 0; r < n_rows; ++r){ // iterate over row elements in column and check wether is equal to unique value or not
         if(column[r]==unique_values[i]){
           left_array.push_back(y[r]);
@@ -86,31 +91,33 @@ List best_split_c(DataFrame X, List features, CharacterVector y) {
       //Rcout << "right_array: " << right_array << std::endl;
       //Rcout << "left_array: " << left_array << std::endl;
       //Rcout << "weight_gini: " << weight_gini << std::endl;
-      
       if (weight_gini < best_gini){
         best_gini = weight_gini;
         best_feature = Rcpp::as<std::string>(features[n]); // Explicit conversion to std::string
         best_value = Rcpp::as<std::string>(unique_values[i]); 
+        best_left_array = left_array;
+        best_right_array = right_array;
       }
     }
   }
+  std::string mayority_left = mayority_split(best_left_array);
+  std::string mayority_right = mayority_split(best_right_array);
+  
   return List::create(Named("best_gini") = best_gini,
                       Named("best_feature") = best_feature,
-                      Named("best_value") = best_value);
+                      Named("best_value") = best_value,
+                      Named("best_left") = best_left_array,
+                      Named("best_right") = best_right_array,
+                      Named("Mayority_left") = mayority_left,
+                      Named("Mayority_right") = mayority_right);
 }
 
 
 
 // [[Rcpp::export]]
-void fit_decision_stump_c(DataFrame X, List features, CharacterVector y){
-  best_split_c(X, features, y);
+void fit_decision_stump_c_v2(DataFrame X, List features, CharacterVector y){
+   best_split_c_v2(X, features, y);
 }
-
-
-// You can include R code blocks in C++ files processed with sourceCpp
-// (useful for testing and development). The R code will be automatically 
-// run after the compilation.
-//
 
 
 

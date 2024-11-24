@@ -5,18 +5,21 @@ date: "2024-11-15"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE)
 library(rpart)
 library(rpart.plot)
-play_tennis = read.csv("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/play_tennis.csv",header=TRUE)
+play_tennis = read.csv("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/play_tennis.csv",
+                       header=TRUE)
 ```
-
+### 2 and 3
 The first is to create a function that only changes the max depth of the decision tree. This will allow to assess the effects of changing this parameter. 
 The first tree is the original with depth 2 and we will be checking for 4, 5, 6 and 10.
 ```{r warning=FALSE}
+options(width = 80) 
 change_depth = function(maxde){
-  model <- rpart(PlayTennis ~ ., play_tennis, control = rpart.control(cp = 0, maxdepth = maxde, minsplit = 1, minbucket = 1)) 
-  return (rpart.plot(model)) 
+  model <- rpart(PlayTennis ~ ., play_tennis, control = rpart.control(cp = 0, maxdepth = maxde, minsplit = 1,
+                                                                      minbucket = 1)) 
+  return (rpart.plot(model))
 }
 change_depth(2)
 ```
@@ -30,6 +33,7 @@ As you can see when you have a smaller value for max_depth, the tree is simpler.
 
 In general, having a perfect division in the data can lead to problems like overfitting, and this is why it is typical to prune the trees.
 
+### 4 and 5 
 ```{r}
 gini_impurity_R <- function(left,right){
   len_right= length(right) #length of the right 
@@ -78,16 +82,16 @@ best_split_R <- function(X, y) { #X is your predictors and y is the response var
 ```
 The inputs to the function are the predictors (X) and the response variable (y), which is the one you want to predict. The function begins by setting default values: the Gini impurity is initialized to 1, as this represents the worst possible value, and the feature is set to -1, which is a placeholder since -1 is a possible value in the columns.
 
-Next, the function iterates through the columns of the predictors. For each column, it first retrieves the unique values in that column. Then, for each unique value, it creates two boolean vectors: one that is TRUE when the current value in the column matches the value being considered, and another that is TRUE when the value does not match. These two boolean vectors are used to create two subsets of the response variable (y): one for the left subset (where the value is present) and one for the right subset (where the value is absent).
+Next, the function iterates through the columns of the predictors. For each column, it first retrieves the unique values in that column. Then, for each unique value, it creates two Boolean vectors: one that is TRUE when the current value in the column matches the value being considered, and another that is TRUE when the value does not match. These two Boolean vectors are used to create two subsets of the response variable (y): one for the left subset (where the value is present) and one for the right subset (where the value is absent).
 
 Finally, the Gini impurity is calculated between the two subsets, and if the Gini value is smaller than the current one, the function updates the best Gini value, the best feature, and the corresponding value that resulted in the current best split.
 
-
+### 6 with R
 
 ```{r}
 best_split_R(play_tennis[0:3],play_tennis$PlayTennis)
 ```
-
+### 6 wich C++
 
 ```{r}
 library(Rcpp)
@@ -98,7 +102,46 @@ sourceCpp("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programm
 ```{r}
 best_split_c(play_tennis[0:3],features = list("Outlook", "Temperature", "Humidity", "Wind"),play_tennis$PlayTennis)
 ```
-As you can the both code give the same result. Next we will be adding a variable call "test" 
+As you can the both code give the same result.
+### 7
+Next we will be adding a variable call "Energy_Level" that have High, Low or Neutral.
+
+```{r}
+play_tennis$Energy_level =c("Low","Neutral","High","High","Low","Low","Low","Low","High","High","High",
+                            "High","High","High","Low")
+play_tennis
+```
+This variable should be the new best_feature and the gini impurity should be theorically 0.3071429.
+
+$$ Gini(Low,Neutral) =  1 - \left( \left(\frac{2}{7}\right)^{2} +\left(\frac{5}{7}\right)^{2} \right) $$
+$$ Gini(High) = 1-\left( \left( \frac{7}{8}\right)^{2} +\left(\frac{1}{8}\right)^{2} \right) $$
+$$ WeightGini = \frac{7}{15}\cdot Gini(Low,Neutral) +\frac{8}{15}\cdot Gini (High) = 0.3071429 $$
+
+```{r}
+best_split_R(play_tennis[c("Outlook","Temperature","Humidity","Wind","Energy_level")],play_tennis$PlayTennis)
+```
+```{r}
+best_split_c(play_tennis[c("Outlook","Temperature","Humidity","Wind","Energy_level")],features = list("Outlook","Temperature","Humidity","Wind","Energy_level"),play_tennis$PlayTennis)
+```
+As you can see the obtain values in both of our functions are the same and it's the expected result.
 
 
+### 8 
+IT is best c++ function than R 
+
+### 9
+```{r}
+source("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/advporgrammingpart1/R/r_version_of_ds_v2.R")
+fit_decision_stump_R_v2(play_tennis[c("Outlook","Temperature","Humidity","Wind")],play_tennis$PlayTennis)
+```
+
+```{r}
+library(Rcpp)
+sourceCpp("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/advporgrammingpart1/src/decision_stump_c_v2.cpp")
+```
+
+```{r}
+best_split_c_v2(play_tennis[c("Outlook","Temperature","Humidity","Wind")],features = list("Outlook","Temperature","Humidity","Wind","Energy_level"),play_tennis$PlayTennis)
+```
+Both function create the same branch for the tree and also have the same mayority category.
 
