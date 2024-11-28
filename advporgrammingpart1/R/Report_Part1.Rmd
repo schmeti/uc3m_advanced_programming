@@ -8,7 +8,7 @@ date: "2024-11-15"
 knitr::opts_chunk$set(echo = TRUE,warning = FALSE)
 library(rpart)
 library(rpart.plot)
-play_tennis = read.csv("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/play_tennis.csv",
+play_tennis = read.csv("../data/play_tennis.csv",
                        header=TRUE)
 ```
 ### 2 and 3
@@ -95,7 +95,7 @@ best_split_R(play_tennis[0:3],play_tennis$PlayTennis)
 
 ```{r}
 library(Rcpp)
-sourceCpp("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/advporgrammingpart1/src/decision_stump_c.cpp")
+sourceCpp("../src/decision_stump_c.cpp")
 ```
 
 
@@ -131,16 +131,35 @@ IT is best c++ function than R
 
 ### 9
 ```{r}
-source("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/advporgrammingpart1/R/r_version_of_ds_v2.R")
+source("r_version_of_ds_v2.R")
 fit_decision_stump_R_v2(play_tennis[c("Outlook","Temperature","Humidity","Wind")],play_tennis$PlayTennis)
 ```
 
 ```{r}
 library(Rcpp)
-sourceCpp("C:/Users/flore/Desktop/git/advance_programming/uc3m_advanced_programming/advporgrammingpart1/src/decision_stump_c_v2.cpp")
+sourceCpp("../src/decision_stump_c_v2.cpp")
 ```
 
 ```{r}
 best_split_c_v2(play_tennis[c("Outlook","Temperature","Humidity","Wind")],features = list("Outlook","Temperature","Humidity","Wind","Energy_level"),play_tennis$PlayTennis)
 ```
-Both function create the same branch for the tree and also have the same mayority category.
+Both function create the same branch for the tree and also have the same majority category.
+
+
+Having shown that both the R and the C++ functions work well, a benchmark test is run to evaluate the efficiency of both functions using the package "microbenchmark". Doing so, gives out a table with values in microseconds for runtime. Both functions are fun 100 times to create values like mean, median, min and max. Running the benchmark of both functions, as expected the C function outperforms the R function significantly. The speed advantage is about 2.5 times, e.g. the R function requiring about 2.5 more time on average. This is in line with the reasoning of writing functions used in R separately as C++ functions, to leverage the speed advantage code written in C++ has. 
+
+```{r}
+library(microbenchmark)
+
+# Benchmarking
+benchmarking_results <- microbenchmark(
+    best_split_c(play_tennis[0:3],
+                 features = list("Outlook", "Temperature", "Humidity", "Wind"),
+                 play_tennis$PlayTennis),
+    best_split_R(play_tennis[0:3],play_tennis$PlayTennis),
+    times = 100
+)
+
+# Results
+print(benchmarking_results)
+```
