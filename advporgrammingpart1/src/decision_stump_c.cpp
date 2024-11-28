@@ -60,7 +60,7 @@ List best_split_c(DataFrame X, List features, CharacterVector y) {
   
   
   for (int n = 0; n < n_features; ++n){ // iterate over columns
-    Rcout << "Processing feature: " << n << std::endl;
+    //Rcout << "Processing feature: " << n << std::endl;
 
     CharacterVector column = X[n]; // column as numeric vector
     int n_rows = column.size();
