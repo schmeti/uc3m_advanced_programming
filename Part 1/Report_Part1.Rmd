@@ -8,7 +8,7 @@ date: "2024-11-15"
 knitr::opts_chunk$set(echo = TRUE,warning = FALSE)
 library(rpart)
 library(rpart.plot)
-play_tennis = read.csv("../data/play_tennis.csv",
+play_tennis = read.csv("play_tennis.csv",
                        header=TRUE)
 ```
 
@@ -113,7 +113,7 @@ With the results from the C++ code by calling the Rcpp function as shown below
 
 ```{r}
 library(Rcpp)
-sourceCpp("../src/decision_stump_c.cpp")
+sourceCpp("advporgrammingpart1/src/decision_stump_c.cpp")
 ```
 
 
@@ -167,19 +167,19 @@ print(benchmarking_results)
 In the last Excercise, the majority categories for left and right branch both in the R ("R/r_version_of_ds_v2.R") and the C++ function ("src/r_version_of_ds_v2.R"). Using both function, it is apparent that both create the same branch for the tree and also have the same majority category.
 
 ```{r}
-source("r_version_of_ds_v2.R")
+source("advporgrammingpart1/R/r_version_of_ds_v2.R")
 fit_decision_stump_R_v2(play_tennis[c("Outlook","Temperature","Humidity","Wind")],play_tennis$PlayTennis)
 ```
 
 ```{r}
 library(Rcpp)
-sourceCpp("../src/decision_stump_c_v2.cpp")
+sourceCpp("advporgrammingpart1/src/decision_stump_c_v2.cpp")
 ```
 
 ```{r}
 best_split_c_v2(play_tennis[c("Outlook","Temperature","Humidity","Wind")],features = list("Outlook","Temperature","Humidity","Wind","Energy_level"),play_tennis$PlayTennis)
 ```
-# Usage of ChatGPT
+# Use of ChatGPT
 
 ChatGPT was used to find bugs in this project.
 

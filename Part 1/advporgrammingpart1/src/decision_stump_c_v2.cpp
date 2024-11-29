@@ -3,7 +3,8 @@
 using namespace Rcpp;
 #include <string>
 // [[Rcpp::export]]
-double value_count(CharacterVector vec, const std::string& target){
+
+double value_count_v2(CharacterVector vec, const std::string& target){
   int len_vec = vec.size();
   int count = 0;
   for(int n=0;n<len_vec;++n){
@@ -16,15 +17,15 @@ double value_count(CharacterVector vec, const std::string& target){
 
 
 // [[Rcpp::export]]
-double gini_impurity_c(CharacterVector left, CharacterVector right){
+double gini_impurity_c_v2(CharacterVector left, CharacterVector right){
   double len_left = left.size();
   double len_right = right.size();
   double len_total = len_left + len_right;
   
-  double gin_right = 1 - (std::pow(value_count(right, "Yes") / len_right, 2) +
-                          std::pow(value_count(right, "No") / len_right, 2));
-  double gin_left = 1 - (std::pow(value_count(left, "Yes") / len_left, 2) +
-                         std::pow(value_count(left, "No") / len_left, 2));
+  double gin_right = 1 - (std::pow(value_count_v2(right, "Yes") / len_right, 2) +
+                          std::pow(value_count_v2(right, "No") / len_right, 2));
+  double gin_left = 1 - (std::pow(value_count_v2(left, "Yes") / len_left, 2) +
+                         std::pow(value_count_v2(left, "No") / len_left, 2));
   
   //Rcout << "gin_right: " << gin_right << std::endl;
   //Rcout << "gin_left: " << gin_left << std::endl;
@@ -37,9 +38,9 @@ double gini_impurity_c(CharacterVector left, CharacterVector right){
 }
 
 std::string mayority_split(CharacterVector aux) {
-  // Remove std::pow, directly use value_count result
-  int sum_yes = value_count(aux, "Yes");  // Count occurrences of "Yes"
-  int sum_no = value_count(aux, "No");    // Count occurrences of "No"
+  // Remove std::pow, directly use value_count_v2 result
+  int sum_yes = value_count_v2(aux, "Yes");  // Count occurrences of "Yes"
+  int sum_no = value_count_v2(aux, "No");    // Count occurrences of "No"
   
   std::string mayority;
   if (sum_yes > sum_no) {
@@ -86,7 +87,7 @@ List best_split_c_v2(DataFrame X, List features, CharacterVector y) {
         }
       }
       
-      double weight_gini = gini_impurity_c(left_array, right_array);
+      double weight_gini = gini_impurity_c_v2(left_array, right_array);
       // Print gini
       //Rcout << "right_array: " << right_array << std::endl;
       //Rcout << "left_array: " << left_array << std::endl;
