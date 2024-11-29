@@ -1,6 +1,7 @@
 ---
 title: "Report_Part1"
 output: pdf_document
+author: "Florencia Luque and Simon Schmetz"
 date: "2024-11-15"
 ---
 
